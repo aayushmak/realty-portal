@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://realty-portal.onrender.com/api',
+  baseURL: 'http://localhost:5001/api', // backend URL
   headers: { 'Content-Type': 'application/json' },
 });
 
