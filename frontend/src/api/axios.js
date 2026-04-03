@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api' || 'https://realty-portal.onrender.com/api',
-headers: { 'Content-Type': 'application/json' },
+  baseURL: 'https://your-backend-name.onrender.com/api',
+  headers: { 'Content-Type': 'application/json' },
 });
 
 // Attach JWT token to every request automatically
