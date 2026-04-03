@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5001/api', // backend URL
-  headers: { 'Content-Type': 'application/json' },
+baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
+headers: { 'Content-Type': 'application/json' },
 });
 
 // Attach JWT token to every request automatically
