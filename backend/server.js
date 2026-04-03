@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const propertyRoutes = require('./routes/properties');
 const favouriteRoutes = require('./routes/favourites');
 const errorHandler = require('./middleware/errorHandler');
+const path = require('path');
 
 // Load env vars
 dotenv.config();
@@ -60,4 +61,14 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5001; // make sure this matches your curl/client
 app.listen(PORT, () => {
   console.log(` Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+});
+
+
+
+// Serve frontend build
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// Catch-all route
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'));
 });
