@@ -15,7 +15,6 @@ const app = express();
 // ─── Middleware ───────────────────────────────────────────────────────────────
 const allowedOrigins = [
   'http://localhost:3000',
-  'http://localhost:5173',                    // Vite dev server (if used)
   process.env.CLIENT_URL,                     // e.g. https://your-frontend.onrender.com
 ].filter(Boolean);                            // remove undefined if CLIENT_URL not set
 

@@ -1,0 +1,13 @@
+services:
+  - type: static
+    name: realty-portal-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://realty-portal.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
