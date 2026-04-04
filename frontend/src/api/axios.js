@@ -3,7 +3,11 @@ import axios from 'axios';
 // In local dev: CRA proxy forwards /api → localhost:5000 (via package.json "proxy")
 // In production: set REACT_APP_API_URL=https://your-backend.onrender.com in Render env vars
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '',
+  // Locally: '/api' is proxied to localhost:5001 via package.json "proxy"
+  // Production: REACT_APP_API_URL=https://realty-portal.onrender.com (no /api suffix)
+  baseURL: process.env.REACT_APP_API_URL
+    ? `${process.env.REACT_APP_API_URL}/api`
+    : '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 
