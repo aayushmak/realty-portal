@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+// In local dev: CRA proxy forwards /api → localhost:5000 (via package.json "proxy")
+// In production: set REACT_APP_API_URL=https://your-backend.onrender.com in Render env vars
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL||'http://localhost:5001/api', // backend URL
+  baseURL: process.env.REACT_APP_API_URL || '',
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -14,7 +16,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally, redirect to login
+// Handle 401 globally — redirect to login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
