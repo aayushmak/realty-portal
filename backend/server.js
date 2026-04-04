@@ -30,7 +30,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes 
+// API Routes (keep these before frontend catch-all)
 app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/favourites', favouriteRoutes);
@@ -39,36 +39,27 @@ app.use('/api/favourites', favouriteRoutes);
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Realty Portal API is running 🏠' });
 });
-
 app.get('/ping', (req, res) => {
   res.json({ success: true, message: 'pong' });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found.` });
+// Serve frontend build
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+// React catch-all route (for SPA routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'));
 });
 
 // Error Handler
-app.use(errorHandler); 
-
+app.use(errorHandler);
 app.use((err, req, res, next) => {
   console.error(' Server Error:', err);
   res.status(500).json({ success: false, message: err.message || 'Server error' });
 });
 
 // Start Server 
-const PORT = process.env.PORT || 5001; // make sure this matches your curl/client
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(` Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-});
-
-
-
-// Serve frontend build
-app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-// Catch-all route
-app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../frontend/build/index.html'));
 });
