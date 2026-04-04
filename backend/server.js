@@ -10,12 +10,12 @@ connectDB();
 
 const app = express();
 
-// ─── Middleware ───────────────────────────────────────────────────────────────
+// Middleware
 app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ─── API Routes ───────────────────────────────────────────────────────────────
+// API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/properties', require('./routes/properties'));
 app.use('/api/favourites', require('./routes/favourites'));
@@ -24,7 +24,7 @@ app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'Realty Portal API is running 🏠' });
 });
 
-// ─── Serve React frontend in production ──────────────────────────────────────
+// Serve React frontend in production 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')));
   app.get('*', (req, res) => {
@@ -32,10 +32,10 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// ─── Error Handler ────────────────────────────────────────────────────────────
+// Error Handler 
 app.use(errorHandler);
 
-// ─── Start Server ─────────────────────────────────────────────────────────────
+// Start Server
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);

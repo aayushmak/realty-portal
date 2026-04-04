@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// In local dev: CRA proxy forwards /api → localhost:5000 (via package.json "proxy")
-// In production: set REACT_APP_API_URL=https://your-backend.onrender.com in Render env vars
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || '',
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 

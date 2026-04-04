@@ -36,7 +36,7 @@ realty-portal/
 │   │   └── favourites.js      # GET/POST/DELETE /favourites
 │   ├── seed.js                # Sample property data seeder
 │   ├── server.js              # Express app entry point
-│   └── .env                   # Environment variables
+│   └── .env                   # Environment variables (local only)
 │
 └── frontend/
     └── src/
@@ -59,15 +59,12 @@ realty-portal/
 
 ---
 
-## Prerequisites
+## Local Development
 
-- **Node.js** v18+
-- **MongoDB** running locally on `mongodb://localhost:27017`  
-  *(or swap `MONGO_URI` in `.env` for a MongoDB Atlas connection string)*
+### Prerequisites
 
----
-
-## How to Run
+- Node.js v18+
+- MongoDB Atlas account (or local MongoDB on port 27017)
 
 ### 1. Install dependencies
 
@@ -85,17 +82,15 @@ cd ../frontend && npm install
 
 ### 2. Configure environment
 
-The backend `.env` file is pre-configured for local development:
+Create `backend/.env`:
 
 ```env
-PORT=5000
+PORT=5001
 MONGO_URI=mongodb://localhost:27017/realty-portal
 JWT_SECRET=your_super_secret_jwt_key_change_in_production
 JWT_EXPIRES_IN=7d
 NODE_ENV=development
 ```
-
-> ⚠️ Change `JWT_SECRET` before deploying to production.
 
 ### 3. Seed the database (optional but recommended)
 
@@ -122,14 +117,91 @@ Open **http://localhost:3000** in your browser.
 
 ---
 
+## Deploying to Render
+
+This app deploys as a **single Web Service** on Render. Express serves both the API and the React build from one server — no separate frontend service needed.
+
+### How it works in production
+
+```
+Browser → https://your-app.onrender.com
+              ↓
+         Express server
+         ├── /api/*  → API routes (auth, properties, favourites)
+         └── /*      → Serves React's index.html (client-side routing)
+```
+
+### Step 1 — MongoDB Atlas setup
+
+1. Go to [MongoDB Atlas](https://cloud.mongodb.com) → **Network Access**
+2. Click **Add IP Address → Allow Access from Anywhere** (`0.0.0.0/0`)
+   - Render uses dynamic IPs so this is required
+3. Copy your Atlas connection string — you'll need it in Step 3
+
+### Step 2 — Push to GitHub
+
+Make sure your latest code is pushed:
+
+```bash
+git add .
+git commit -m "ready for render"
+git push origin main
+```
+
+> ⚠️ The `.env` file is in `.gitignore` and will NOT be pushed. Environment variables are set directly in Render's dashboard.
+
+### Step 3 — Create a Web Service on Render
+
+1. Go to [render.com](https://render.com) → **New → Web Service**
+2. Connect your GitHub repo
+3. Set the following:
+
+| Setting | Value |
+|---|---|
+| **Root Directory** | *(leave blank)* |
+| **Build Command** | `cd frontend && npm install && npm run build && cd ../backend && npm install` |
+| **Start Command** | `node backend/server.js` |
+
+4. Add these **Environment Variables** in the Render dashboard:
+
+| Key | Value |
+|---|---|
+| `NODE_ENV` | `production` |
+| `MONGO_URI` | `mongodb+srv://your-user:your-pass@cluster.mongodb.net/realty?retryWrites=true&w=majority` |
+| `JWT_SECRET` | `a_long_random_secret_string` |
+| `JWT_EXPIRES_IN` | `7d` |
+
+5. Click **Create Web Service** — Render will build and deploy automatically
+
+### Step 4 — Seed the database on Render (optional)
+
+To add sample properties to your live database, run the seeder locally pointing at your Atlas URI:
+
+```bash
+# Temporarily update MONGO_URI in backend/.env to your Atlas connection string
+cd backend && node seed.js
+```
+
+### Troubleshooting Render deployments
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `404` on `/` | `NODE_ENV` not set to `production` | Add `NODE_ENV=production` in Render environment variables |
+| `500` on login/register | MongoDB connection failing | Check `MONGO_URI` is correct and Atlas IP whitelist includes `0.0.0.0/0` |
+| CORS errors | Frontend and backend on different domains | Not applicable — single service deployment shares the same domain |
+| Page 404 on refresh | React Router routes not handled | Already handled — `server.js` catches all non-API routes and serves `index.html` |
+| Build fails | Wrong build command | Ensure build command is exactly as shown in Step 3 |
+
+---
+
 ## Example Flows
 
 ### Flow 1: Register → Login → Browse → Favourite
 
 ```
-1. Visit http://localhost:3000/register
+1. Visit /register
 2. Fill in: Name, Email, Password (min 6 chars) → Submit
-3. Automatically redirected to /dashboard (logged in)
+3. Automatically redirected to /dashboard
 4. Browse the property grid
 5. Click "♡ Add to Favourites" on any property card
 6. Toast notification confirms: "Added to favourites!"
@@ -141,7 +213,7 @@ Open **http://localhost:3000** in your browser.
 ### Flow 2: Login with existing account
 
 ```
-1. Visit http://localhost:3000/login
+1. Visit /login
 2. Enter your email + password → Submit
 3. Redirected to /dashboard
 ```
@@ -150,7 +222,7 @@ Open **http://localhost:3000** in your browser.
 
 ```
 1. Open a private/incognito window
-2. Try visiting http://localhost:3000/favourites
+2. Try visiting /favourites directly
 3. Automatically redirected to /login
 4. After logging in, redirected back to /favourites
 ```
@@ -187,20 +259,21 @@ Open **http://localhost:3000** in your browser.
 
 ## Security Highlights
 
-- **Passwords** are hashed with `bcryptjs` (12 salt rounds) before storage — never stored in plaintext
+- **Passwords** are hashed with `bcryptjs` (12 salt rounds) — never stored in plaintext
 - **JWT** is verified on every protected request via the `protect` middleware
-- **Favourites are user-scoped**: the DB query always filters by `user: req.user._id`, so users can never read or modify another user's favourites
+- **Favourites are user-scoped**: DB queries always filter by `user: req.user._id` so users can never access another user's favourites
 - **Input validation** runs on both client (React) and server (express-validator)
 - A **compound unique index** (`user + property`) prevents duplicate favourites at the DB level
-- **CORS** is configured to only accept requests from the frontend origin
+- **`.env` is gitignored** — secrets never reach GitHub
 
 ---
 
 ## Design Decisions
 
-- **In-memory auth state** is held in React Context + localStorage for the JWT token, with a token verification call on app mount
-- **Axios interceptors** automatically attach the Bearer token to every request and redirect to `/login` on 401
-- **Separate Favourite model** (junction table pattern) allows easy extension (e.g., notes, alert preferences per saved property)
+- **Single service deployment** — Express serves the React build in production, eliminating CORS complexity entirely
+- **In-memory auth state** held in React Context + localStorage, with token verification on app mount
+- **Axios interceptors** automatically attach the Bearer token and redirect to `/login` on 401
+- **Separate Favourite model** (junction table pattern) allows easy extension (e.g., notes, alerts per saved property)
 - **`select: false`** on the User password field ensures it's never accidentally returned in API responses
 
 ---

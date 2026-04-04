@@ -40,7 +40,7 @@ router.post(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        console.error('❌ Validation Error:', errors.array()); // logs to console
+        console.error(' Validation Error:', errors.array()); // logs to console
         return res.status(400).json({
           success: false,
           message: errors.array()[0].msg,
@@ -52,7 +52,7 @@ router.post(
 
       const existing = await User.findOne({ email: email.toLowerCase() });
       if (existing) {
-        console.error('❌ Registration Error: Email already exists'); // logs to console
+        console.error(' Registration Error: Email already exists'); // logs to console
         return res.status(409).json({
           success: false,
           message: 'An account with this email already exists.',
@@ -74,8 +74,8 @@ router.post(
         },
       });
     } catch (error) {
-      console.error('❌ Registration Exception:', error.message);
-      console.error(error.stack); // <-- full stack trace
+      console.error(' Registration Exception:', error.message);
+      console.error(error.stack); // full stack trace
       res.status(500).json({
         success: false,
         message: 'Server Error. Check console for details.',
@@ -129,7 +129,7 @@ router.post(
         },
       });
     } catch (error) {
-  console.error('❌ Login Exception:', error); // log full error
+  console.error(' Login Exception:', error); // log full error
   return res.status(500).json({ success: false, message: 'Server error. Check console.' });
 }
     
